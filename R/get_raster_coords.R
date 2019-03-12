@@ -1,0 +1,15 @@
+get_raster_coords<-function(raster_obj){
+  print(raster_obj@file@name)
+  quartz()
+  plot(raster_obj)
+  pt1<-click()
+  pt2<-click()
+  good_coords<-data.frame(
+    image_path=raster_obj@file@name,
+    xmin=min(c(pt1[1],pt2[1])),
+    xmax=max(c(pt1[1],pt2[1])),
+    ymin=min(c(pt1[2],pt2[2])),
+    ymax=max(c(pt1[2],pt2[2]))
+  )
+  return(good_coords)
+}
