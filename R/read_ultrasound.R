@@ -20,6 +20,11 @@ read_ultrasound<-function(path,xmin,xmax){
   r_df<-r_df %>%
     filter(x>xmin,x<xmax) %>%
     group_by(image_path,y) %>%
-    summarise(mean=mean(reflect))
+    summarise(mean=mean(reflect),
+              mean_norm=scale(mean,center = T,scale = T),
+              sd = sd(reflect),
+              median = median(reflect),
+              min = min(reflect),
+              max = max(reflect))
   return(r_df)
 }
