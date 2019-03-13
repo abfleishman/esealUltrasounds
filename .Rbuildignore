@@ -3,3 +3,4 @@
 ^\Session.*
 ^README.md
 ^plots.pdf
+^prelim_analysis.R
