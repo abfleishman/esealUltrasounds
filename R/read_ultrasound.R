@@ -12,6 +12,7 @@
 #' @importFrom raster raster as.data.frame
 #' @importFrom dplyr filter group_by summarise
 #' @importFrom magrittr %>%
+#' @importFrom stats sd median
 read_ultrasound<-function(path,xmin,xmax){
   r<-raster(path)
   r_df<-raster::as.data.frame(r,xy=T)
