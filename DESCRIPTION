@@ -1,12 +1,14 @@
 Package: esealUltrasounds
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Analysis of Elephant Seal Ultrasounds
+Version: 0.0.0.01
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Abram",
+           family = "Fleishman",
            role = c("aut", "cre"),
-           email = "first.last@example.com")
-Description: What the package does (one paragraph).
+           email = "abram@conservationmetrics.com")
+Description: This is a small collections of functions and scripts for aiding the
+  analysis of elephant seal ultrasounds to determine blubber thickness in cm at
+  various part of the body.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
