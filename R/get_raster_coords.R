@@ -6,6 +6,8 @@
 #' @export
 #' @return a data frame with with analysis selection x,y coordinants
 #' @importFrom graphics plot
+#' @importFrom grDevices dev.new
+#' @importFrom raster click plot
 
 
 get_raster_coords<-function(raster_obj){
@@ -14,6 +16,7 @@ get_raster_coords<-function(raster_obj){
   plot(raster_obj)
   pt1<-click()
   pt2<-click()
+  dev.off()
   good_coords<-data.frame(
     image_path=raster_obj@file@name,
     xmin=min(c(pt1[1],pt2[1])),
