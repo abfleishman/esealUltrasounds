@@ -1,5 +1,15 @@
-library(XML)
-library(purrr)
+#' Read Ultra Sound Metadata
+#'
+#' Read in a selection of metadata fields from a ultrasound Session_* folder
+#' including image dimentions, y resolution (for converting to cm, image_dir, image_file,
+#' imagename, givenname, familyname, createtime
+#'
+#' @param image_dir path to a Session_* directory
+#' @export
+#' @return a data frame with ultrasound metadata
+#' @importFrom XML xmlParse xmlToList
+#' @importFrom purrr map_chr
+#'
 read_eseal_meta<-function(image_dir){
   data <- xmlParse(paste0(image_dir,"/metadata.xml"))
   xml_data <- xmlToList(data)
