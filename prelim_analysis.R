@@ -49,20 +49,6 @@ dat<-us_dat %>%
          drv2_smoothed = rollmean(x = drv2, k=50,fill = NA), # k= 50 was a bit arbitrary
          drv2_smoothed2 = rollmean(x =drv2_smoothed,k=50,fill=NA,align = "center"))
 
-
-ggplot()+
-   geom_raster(data=hm,aes(x,cms,fill=ref_norm))+
-  geom_vline(xintercept = c(xs$xmin,xs$xmax ),col="red",size = 1,linetype=2)+
-    geom_path(data=dat %>% filter(image_path==paths[i]),
-            aes(drv1_smoothed2,cms),col="black",show.legend = T)+
-  scale_fill_viridis_c(option = "plasma" )+
-  geom_point(data = peaks,aes(x=drv1_smoothed2,y=cms))
-
-
-i=1
-plot(rasters[[i]])
-lines(dat$drv1_smoothed[dat$image_path==paths[i]],dat$y[dat$image_path==paths[i]])
-
 # make four panel plots
 pdf('plots.pdf',width = 8,height = 8,onefile = T)
 for(i in 1:length(paths)){
