@@ -66,13 +66,19 @@ lines(dat$drv1_smoothed[dat$image_path==paths[i]],dat$y[dat$image_path==paths[i]
 # make four panel plots
 pdf('plots.pdf',width = 8,height = 8,onefile = T)
 for(i in 1:length(paths)){
+
+  # get the coords for the analysis selection
   xs<-dat %>% filter(image_path==paths[i]) %>% select(xmin,xmax,y_res) %>% distinct()
 
+  # get the raster ad a long data.frame
   hm<-as.data.frame(rasters[[i]],xy=T)
   names(hm)[3]<-"reflect"
 
+  # add cms and create a normalized val
   hm<-hm %>%    mutate(cms=((y/as.numeric(as.character(xs$y_res)))*100)-max((y/as.numeric(as.character(xs$y_res)))*100),
                        ref_norm = scale(reflect,center = T,scale = T))
+
+  # get the peaks for for plotting
   peaks<-get_peaks(dat %>% filter(image_path==paths[i]))
 
   plot(
@@ -94,9 +100,11 @@ for(i in 1:length(paths)){
       scale_x_continuous(breaks =  seq(0,-9,-.5))+
       labs(x="Depth (cm)",y="Mean Reflectivity")+theme_bw()+plot_layout(nrow=1,widths = c(3,1)))
 }
+dev.off()
+
 # can we set it up to let a user pick one of the peaks?
 getGraphicsEvent
-dev.off()
+
 library(plotly)
 ggplotly(
   ggplot(data=dat %>% filter(image_path==paths[i]) ,aes(col=imagename))+
