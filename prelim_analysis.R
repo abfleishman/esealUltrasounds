@@ -6,13 +6,15 @@ library(zoo)
 library(quantmod)
 require(XML)
 library(esealUltrasounds)
-# try a cut off of 30,000 to start (no peak below )
-## normalize
+
+# TO DO:
+# try a cut off of 30,000 to start (no peak below ): could set all vals below to 0
+## normalize raster, then calculate everything?
 ## interactive choice between peaks (peak a vs peak b)
 ## integrate under the peaks somehow
 ## tag depth
-##
-## List Paths
+
+# List Paths
 paths=list.files("/git_repos/esealUltrasounds",pattern = ".png",full.names = T,recursive = T)
 
 # list all the image dirs (need to make this generic)
