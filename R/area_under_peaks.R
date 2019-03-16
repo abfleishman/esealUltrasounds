@@ -12,7 +12,7 @@
 
 # get the peaks for for plotting
 area_under_peaks<-function(df){
-  df<-df %>% mutate(drv1_smoothed2=rollmean(drv1_smoothed2,k=10,fill = "NA"))
+  # df<-df %>% mutate(drv1_smoothed2=rollmean(drv1_smoothed2,k=30,fill = "NA"))
   peaks<-get_peaks(df) %>%
     # filter(abs(cms)>1,abs(drv1_smoothed2)>max(abs(drv1_smoothed2))*.1) %>%
     bind_rows(data.frame(drv1_smoothed2 = 0 ,  cms=0, type="min",stringsAsFactors = F))%>%
@@ -39,7 +39,9 @@ area_under_peaks<-function(df){
     summarise(AUC=round(sum(mean),2))
 
   maxs<-peaks %>%
-    left_join(temp1)
+    left_join(temp1, by = "id")
 
   return(maxs)
 }
+
+
