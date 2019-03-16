@@ -11,26 +11,25 @@
 #' @export
 
 # get the peaks for for plotting
-area_under_peaks<-function(df){
-  # df<-df %>% mutate(drv1_smoothed2=rollmean(drv1_smoothed2,k=30,fill = "NA"))
-  peaks<-get_peaks(df) %>%
-    # filter(abs(cms)>1,abs(drv1_smoothed2)>max(abs(drv1_smoothed2))*.1) %>%
-    bind_rows(data.frame(drv1_smoothed2 = 0 ,  cms=0, type="min",stringsAsFactors = F))%>%
-    arrange(-cms) %>%
-    # select(-drv1_smoothed2) %>%
-    mutate(id=row_number())
-  # %>% filter(type=="min")
+area_under_peaks<-function(df,dist_col,peaks_col){
+  empty_row<-data.frame(col= 0 ,  col2=0, type="min",stringsAsFactors = F)
+  names(empty_row)[1:2]<-c(dist_col,peaks_col)
 
-  integ_breaks<-peaks[peaks$type=="min",c("cms","id")]
+  peaks<-get_peaks(df, dist_col, peaks_col)   %>%
+    bind_rows(empty_row) %>%
+    arrange_(paste("-",dist_col)) %>%
+    mutate(id=row_number())
+
+  integ_breaks<-peaks[peaks$type=="min",c(dist_col,"id")]
   names(integ_breaks)[1]<-"start"
   integ_breaks$end<-lag(integ_breaks$start)
   integ_breaks<-integ_breaks[!is.na(integ_breaks$end),]
   setDT(integ_breaks,key = c("start","end"))
 
-  df$cms2<-df$cms
+  df$dist2<-df[[dist_col]]
   setDT(df)
 
-  temp<-foverlaps(df,y = integ_breaks,by.x=c("cms","cms2"))
+  temp<-foverlaps(df,y = integ_breaks,by.x=c(dist_col,"dist2"))
 
   temp1<-temp %>%
     filter(!is.na(id)) %>%
