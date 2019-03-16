@@ -13,16 +13,16 @@
 get_raster_coords<-function(raster_obj){
   print(raster_obj@file@name)
   dev.new(noRStudioGD = T)
-  plot(raster_obj)
-  pt1<-click()
-  pt2<-click()
+  plot(raster_obj,main = raster_obj@file@name)
+  pt1<-click(n=2,type="p")
   dev.off()
   good_coords<-data.frame(
     image_path=raster_obj@file@name,
-    xmin=min(c(pt1[1],pt2[1])),
-    xmax=max(c(pt1[1],pt2[1])),
-    ymin=min(c(pt1[2],pt2[2])),
-    ymax=max(c(pt1[2],pt2[2]))
+    xmin=min(c(pt1[1],pt1[2])),
+    xmax=max(c(pt1[1],pt1[2])),
+    ymin=min(c(pt1[3],pt1[4])),
+    ymax=max(c(pt1[3],pt1[4])),
+    stringsAsFactors = F
   )
   return(good_coords)
 }
