@@ -17,4 +17,5 @@ Imports:XML,
   dplyr,
   purrr,
   raster,
-  magrittr
+  magrittr,
+  data.table
