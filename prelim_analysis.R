@@ -12,35 +12,32 @@ library(esealUltrasounds)
 # try a cut off of 30,000 to start (no peak below ): could set all vals below to 0
 ## normalize raster, then calculate everything?
 ## interactive choice between peaks (peak a vs peak b)
-## integrate under the peaks somehow
 ## tag depth
 
-# List Paths
-paths=list.files("/git_repos/esealUltrasounds",pattern = ".png",full.names = T,recursive = T)
-
-# list all the image dirs (need to make this generic)
-image_dirs<-list.dirs("/git_repos/esealUltrasounds",full.names = T)
-image_dirs<-image_dirs[str_detect(image_dirs,"Session_.*")][1]
-paths=list.files(image_dirs,pattern = ".png",full.names = T,recursive = T)
+# List Paths to PNGs
+paths=list.files("/git_repos/esealUltrasounds",pattern = ".png",full.names = T,recursive = T)[30]
+paths<-as.character(paths)
+# list all the image dirs
+image_dirs<-as.character(unique(dirname(paths)))[1]
 
 # read metadata
 eseal_meta<-map_dfr(image_dirs,read_eseal_meta)
 
-# load all the rasters
+# load all the rasters in to a list
 rasters<-map(paths,raster)
 
-# what if we transform the raster
-rat<-rasters[[i]]
-crs(rat)<-CRS("+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
-par(mfrow=c(3,3))
-y <- focal(rasters[[i]], w=matrix(1, 51, 1), mean) # this is smoothing the y by 51 pixels
-plot(y)
-plot(terrain(rat,opt = "slope",unit = "tangent"))
-plot(terrain(rat,opt = "aspect",unit = "degrees"))
-plot(terrain(rat,opt = "TPI",unit = "degrees"))
-plot(terrain(rat,opt = "TRI",unit = "degrees"))
-plot(terrain(rat,opt = "roughness",unit = "degrees"))
-plot(terrain(rat,opt = "flowdir",unit = "degrees"))
+# # what if we transform the raster
+# rat<-rasters[[i]]
+# crs(rat)<-CRS("+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
+# par(mfrow=c(3,3))
+# y <- focal(rasters[[i]], w=matrix(1, 51, 1), mean) # this is smoothing the y by 51 pixels
+# plot(y)
+# plot(terrain(rat,opt = "slope",unit = "tangent"))
+# plot(terrain(rat,opt = "aspect",unit = "degrees"))
+# plot(terrain(rat,opt = "TPI",unit = "degrees"))
+# plot(terrain(rat,opt = "TRI",unit = "degrees"))
+# plot(terrain(rat,opt = "roughness",unit = "degrees"))
+# plot(terrain(rat,opt = "flowdir",unit = "degrees"))
 
 # plot and get the analysis sections
 eseal_coords<-map_dfr(rasters,get_raster_coords)
@@ -51,7 +48,8 @@ us_dat<-pmap_dfr(list(path=eseal_coords$image_path,xmin=eseal_coords$xmin,xmax=e
 # add im_dir, im_name and join with metadata and coords
 us_dat <-us_dat %>% mutate(image_dir = dirname(image_path),imagefile = basename(image_path)) %>%
   left_join(eseal_meta) %>%
-  left_join(eseal_coords)
+  left_join(eseal_coords) %>%
+  select(image_path, image_dir, imagefile, createtime, familyname,givenname, imagename,everything())
 
 # prep dist axis smooth the mean, and then smoothe the 1st deriv twice
 dat<-us_dat %>%
@@ -62,6 +60,7 @@ dat<-us_dat %>%
          drv2 =  drv1-lag(drv1),
          drv1_smoothed = rollmean(x = drv1, k=50,fill = NA), # k= 50 was a bit arbitrary
          drv1_smoothed2 = rollmean(x =drv1_smoothed,k=50,fill=NA,align = "center"),
+         drv1_smoothed3 = rollmean(x =drv1_smoothed2,k=30,fill=NA,align = "center"),
          drv2_smoothed = rollmean(x = drv2, k=50,fill = NA), # k= 50 was a bit arbitrary
          drv2_smoothed2 = rollmean(x =drv2_smoothed,k=50,fill=NA,align = "center"))
 
@@ -70,7 +69,7 @@ pdf('plots.pdf',width = 8,height = 8,onefile = T)
 for(i in 1:length(paths)){
 
   # get the coords for the analysis selection
-  xs<-dat %>% filter(image_path==paths[i]) %>% select(xmin,xmax,y_res) %>% distinct()
+  xs<-dat %>% ungroup %>% filter(image_path==paths[i]) %>% select(xmin,xmax,y_res) %>% distinct()
 
   # get the raster ad a long data.frame
   hm<-as.data.frame(rasters[[i]],xy=T)
@@ -80,14 +79,16 @@ for(i in 1:length(paths)){
   hm<-hm %>%    mutate(cms=((y/as.numeric(as.character(xs$y_res)))*100)-max((y/as.numeric(as.character(xs$y_res)))*100),
                        ref_norm = scale(reflect,center = T,scale = T))
 
+  peaks<-area_under_peaks(dat %>% filter(image_path==paths[i]),dist_col = "cms",peaks_col = "drv1_smoothed3")
 
   plot(
     ggplot()+
       geom_raster(data=hm,aes(x,cms,fill=sqrt(reflect)))+
       geom_vline(xintercept = c(xs$xmin,xs$xmax ),col="red",size = 1,linetype=2)+
       geom_path(data=dat %>% filter(image_path==paths[i]),
-                aes(drv1_smoothed2,cms),col="grey80",show.legend = T)+
-      geom_point(data = peaks,aes(x=drv1_smoothed2,y=cms,col=type))+
+                aes(drv1_smoothed3,cms),col="grey80",show.legend = T)+
+      geom_point(data = peaks,aes(x=drv1_smoothed3,y=cms,col=type))+
+      geom_point(data = peaks,aes(x=AUC/10000,y=cms),col="red",pch=6)+
       scale_fill_gradient(low = "black",high = "white")+
       # scale_fill_viridis_c(option = "plasma" )+
       scale_y_continuous(breaks = seq(0,-9,-.5))+
