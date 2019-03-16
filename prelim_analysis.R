@@ -1,3 +1,4 @@
+library(data.table)
 library(magick)
 library(raster)
 library(tidyverse)
@@ -28,6 +29,19 @@ eseal_meta<-map_dfr(image_dirs,read_eseal_meta)
 # load all the rasters
 rasters<-map(paths,raster)
 
+# what if we transform the raster
+rat<-rasters[[i]]
+crs(rat)<-CRS("+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
+par(mfrow=c(3,3))
+y <- focal(rasters[[i]], w=matrix(1, 51, 1), mean) # this is smoothing the y by 51 pixels
+plot(y)
+plot(terrain(rat,opt = "slope",unit = "tangent"))
+plot(terrain(rat,opt = "aspect",unit = "degrees"))
+plot(terrain(rat,opt = "TPI",unit = "degrees"))
+plot(terrain(rat,opt = "TRI",unit = "degrees"))
+plot(terrain(rat,opt = "roughness",unit = "degrees"))
+plot(terrain(rat,opt = "flowdir",unit = "degrees"))
+
 # plot and get the analysis sections
 eseal_coords<-map_dfr(rasters,get_raster_coords)
 
@@ -43,7 +57,7 @@ us_dat <-us_dat %>% mutate(image_dir = dirname(image_path),imagefile = basename(
 dat<-us_dat %>%
   group_by(image_path) %>%
   mutate(cms=((y/as.numeric(as.character(y_res)))*100)-max((y/as.numeric(as.character(y_res)))*100),
-         mean = rollmean(x = mean,k=10,fill = NA), # k= 50 was a bit arbitrary
+         mean = rollmean(x = mean,k=2,fill = NA), # k= 50 was a bit arbitrary
          drv1 =  mean-lag(mean),
          drv2 =  drv1-lag(drv1),
          drv1_smoothed = rollmean(x = drv1, k=50,fill = NA), # k= 50 was a bit arbitrary
@@ -66,17 +80,16 @@ for(i in 1:length(paths)){
   hm<-hm %>%    mutate(cms=((y/as.numeric(as.character(xs$y_res)))*100)-max((y/as.numeric(as.character(xs$y_res)))*100),
                        ref_norm = scale(reflect,center = T,scale = T))
 
-  # get the peaks for for plotting
-  peaks<-get_peaks(dat %>% filter(image_path==paths[i]))
 
   plot(
     ggplot()+
-      geom_raster(data=hm,aes(x,cms,fill=ref_norm))+
+      geom_raster(data=hm,aes(x,cms,fill=sqrt(reflect)))+
       geom_vline(xintercept = c(xs$xmin,xs$xmax ),col="red",size = 1,linetype=2)+
       geom_path(data=dat %>% filter(image_path==paths[i]),
                 aes(drv1_smoothed2,cms),col="grey80",show.legend = T)+
-      geom_point(data = peaks,aes(x=drv1_smoothed2,y=cms),col="red")+
-      scale_fill_viridis_c(option = "plasma" )+
+      geom_point(data = peaks,aes(x=drv1_smoothed2,y=cms,col=type))+
+      scale_fill_gradient(low = "black",high = "white")+
+      # scale_fill_viridis_c(option = "plasma" )+
       scale_y_continuous(breaks = seq(0,-9,-.5))+
       theme_bw()  +
       # geom_segment(x=xs$xmin,xend=xs$xmax,y=peaks$x+w,yend=peaks$x+w,col="green",linetype=4)+
@@ -86,7 +99,9 @@ for(i in 1:length(paths)){
       geom_path(aes(cms,mean),show.legend = F)+
       coord_flip()+
       scale_x_continuous(breaks =  seq(0,-9,-.5))+
-      labs(x="Depth (cm)",y="Mean Reflectivity")+theme_bw()+plot_layout(nrow=1,widths = c(3,1)))
+      labs(x="Depth (cm)",y="Mean Reflectivity")+theme_bw()+
+
+      plot_layout(nrow=1,widths = c(3,1)))
 }
 dev.off()
 
