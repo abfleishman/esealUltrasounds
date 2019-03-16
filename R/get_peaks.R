@@ -7,10 +7,12 @@
 #' @export
 
 get_peaks<-function(df){
-  temp<-df[df$image_path==paths[i],]
-  temp$drv1_smoothed2[is.na(temp$drv1_smoothed2)]<-0
-  maxs<-localMaxima(temp$drv1_smoothed2)
-  peaks<-data.frame(drv1_smoothed2=temp$drv1_smoothed2[maxs],
-                    cms=temp$cms[maxs])
+  df$drv1_smoothed2[is.na(df$drv1_smoothed2)]<-0
+  maxs<-localMaxima(df$drv1_smoothed2)
+  mins<-localMaxima(-df$drv1_smoothed2)
+  peaks<-rbind(data.frame(drv1_smoothed2=df$drv1_smoothed2[maxs],
+                    cms=df$cms[maxs], type="max",stringsAsFactors = F),
+               data.frame(drv1_smoothed2=df$drv1_smoothed2[mins],
+                          cms=df$cms[mins], type="min",stringsAsFactors = F))
   return(peaks)
 }
