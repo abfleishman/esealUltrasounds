@@ -64,12 +64,19 @@ dat<-us_dat %>%
          drv2_smoothed = rollmean(x = drv2, k=50,fill = NA), # k= 50 was a bit arbitrary
          drv2_smoothed2 = rollmean(x =drv2_smoothed,k=50,fill=NA,align = "center"))
 
+dat %>%
+  group_by(image_path) %>%
+  filter(drv1_smoothed3==max(drv1_smoothed3,na.rm = T)|)
+
 # make four panel plots
 pdf('plots.pdf',width = 8,height = 8,onefile = T)
 for(i in 1:length(paths)){
 
   # get the coords for the analysis selection
-  xs<-dat %>% ungroup %>% filter(image_path==paths[i]) %>% select(xmin,xmax,y_res) %>% distinct()
+  xs<-dat %>% ungroup %>% filter(image_path==paths[i]) %>%
+    select(xmin,xmax,ymin,ymax,y_res) %>%
+    distinct() %>%
+    mutate(cms=(mean(c(ymin,ymax))/as.numeric(as.character(y_res)))-(973.5/as.numeric(as.character(y_res)))*100)
 
   # get the raster ad a long data.frame
   hm<-as.data.frame(rasters[[i]],xy=T)
@@ -78,9 +85,12 @@ for(i in 1:length(paths)){
   # add cms and create a normalized val
   hm<-hm %>%    mutate(cms=((y/as.numeric(as.character(xs$y_res)))*100)-max((y/as.numeric(as.character(xs$y_res)))*100),
                        ref_norm = scale(reflect,center = T,scale = T))
-
-  peaks<-area_under_peaks(dat %>% filter(image_path==paths[i]),dist_col = "cms",peaks_col = "drv1_smoothed3")
-
+xs$cms<-((mean(c(xs$ymin,xs$ymax))/as.numeric(as.character(xs$y_res)))*100)-(max(hm$y)/as.numeric(as.character(xs$y_res))*100)
+  peaks<-area_under_peaks(dat %>% filter(image_path==paths[i]),
+                          dist_col = "cms",peaks_col = "drv1_smoothed3")
+  peaks %>%
+    mutate(cms_diff=abs(cms-xs$cms)) %>%
+             filter(AUC==max(AUC,na.rm=T)|drv1_smoothed3==max(drv1_smoothed3,na.rm=T)|cms_diff==min(cms_diff))
   plot(
     ggplot()+
       geom_raster(data=hm,aes(x,cms,fill=sqrt(reflect)))+
