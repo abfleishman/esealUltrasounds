@@ -85,19 +85,19 @@ for(i in 1:length(paths)){
   # add cms and create a normalized val
   hm<-hm %>%    mutate(cms=((y/as.numeric(as.character(xs$y_res)))*100)-max((y/as.numeric(as.character(xs$y_res)))*100),
                        ref_norm = scale(reflect,center = T,scale = T))
-xs$cms<-((mean(c(xs$ymin,xs$ymax))/as.numeric(as.character(xs$y_res)))*100)-(max(hm$y)/as.numeric(as.character(xs$y_res))*100)
+  xs$cms<-((mean(c(xs$ymin,xs$ymax))/as.numeric(as.character(xs$y_res)))*100)-(max(hm$y)/as.numeric(as.character(xs$y_res))*100)
   peaks<-area_under_peaks(dat %>% filter(image_path==paths[i]),
-                          dist_col = "cms",peaks_col = "drv1_smoothed3")
+                          dist_col = "cms",peaks_col = "drv1_smoothed2")
   peaks %>%
     mutate(cms_diff=abs(cms-xs$cms)) %>%
-             filter(AUC==max(AUC,na.rm=T)|drv1_smoothed3==max(drv1_smoothed3,na.rm=T)|cms_diff==min(cms_diff))
+    filter(AUC==max(AUC,na.rm=T)|drv1_smoothed2==max(drv1_smoothed2,na.rm=T)|cms_diff==min(cms_diff))
   plot(
     ggplot()+
       geom_raster(data=hm,aes(x,cms,fill=sqrt(reflect)))+
       geom_vline(xintercept = c(xs$xmin,xs$xmax ),col="red",size = 1,linetype=2)+
       geom_path(data=dat %>% filter(image_path==paths[i]),
-                aes(drv1_smoothed3,cms),col="grey80",show.legend = T)+
-      geom_point(data = peaks,aes(x=drv1_smoothed3,y=cms,col=type))+
+                aes(drv1_smoothed2,cms),col="grey80",show.legend = T)+
+      geom_point(data = peaks,aes(x=drv1_smoothed2,y=cms,col=type))+
       geom_point(data = peaks,aes(x=AUC/10000,y=cms),col="red",pch=6)+
       scale_fill_gradient(low = "black",high = "white")+
       # scale_fill_viridis_c(option = "plasma" )+
