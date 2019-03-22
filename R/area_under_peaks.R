@@ -6,7 +6,7 @@
 #' @param dist_col column name of the distance column
 #' @param peaks_col column name of the smoothed data
 #' @return a data.frame with the coordinants on peaks
-#' @importFrom dplyr lag group_by summarise filter mutate row_number arrange bind_rows left_join
+#' @importFrom dplyr lag group_by summarise filter mutate row_number arrange bind_rows left_join arrange_
 #' @importFrom data.table setDT foverlaps
 #' @importFrom magrittr %>%
 #'
