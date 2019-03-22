@@ -11,6 +11,8 @@ Description: This is a small collections of functions and scripts for aiding the
   various part of the body.
 License: file LICENSE
 Encoding: UTF-8
+Depends: R (>= 3.1.0)
+BugReports: https://github.com/abfleishman/esealUltrasounds/issues
 LazyData: true
 RoxygenNote: 6.1.1
 Imports:XML,
