@@ -13,7 +13,7 @@
 get_raster_coords<-function(raster_obj){
   print(raster_obj@file@name)
   dev.new(noRStudioGD = T)
-  plot(raster_obj,main = raster_obj@file@name)
+  plot(raster_obj,main = basename(raster_obj@file@name),col = grey.colors(10))
   pt1<-click(n=2,type="p")
   dev.off()
   good_coords<-data.frame(
