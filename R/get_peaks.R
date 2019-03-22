@@ -3,6 +3,8 @@
 #' Get the coordinants of local maximums
 #'
 #' @param df a data.frame
+#' @param dist_col column name of the distance column
+#' @param peaks_col column name of the smoothed data
 #' @return a data.frame with the coordinants on peaks
 #' @export
 

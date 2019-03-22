@@ -6,7 +6,7 @@
 #' @export
 #' @return a data frame with with analysis selection x,y coordinants
 #' @importFrom graphics plot
-#' @importFrom grDevices dev.new dev.off
+#' @importFrom grDevices dev.new dev.off grey.colors
 #' @importFrom raster click plot
 
 
